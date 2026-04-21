@@ -386,27 +386,19 @@ public:
     void sort() {
         if (size() <= 1) return;
 
-        // Use a simple approach - copy to array, sort, copy back
-        // This avoids the complexity of linked list sorting
-        T *values = new T[size()];
-        size_t idx = 0;
-        for (node *cur = head->next; cur != tail; cur = cur->next) {
-            values[idx++] = *(cur->data);
+        // Use insertion sort - stable and simple
+        // Works by swapping data pointers, not nodes
+        for (node *i = head->next->next; i != tail; i = i->next) {
+            T *key = i->data;
+            node *j = i->prev;
+
+            // Move elements that are greater than key one position ahead
+            while (j != head && *(key) < *(j->data)) {
+                j->next->data = j->data;
+                j = j->prev;
+            }
+            j->next->data = key;
         }
-
-        // Use sjtu::sort
-        std::function<bool(const T&, const T&)> cmp = [](const T &a, const T &b) {
-            return a < b;
-        };
-        sjtu::sort(values, values + size(), cmp);
-
-        // Copy back
-        idx = 0;
-        for (node *cur = head->next; cur != tail; cur = cur->next) {
-            *(cur->data) = values[idx++];
-        }
-
-        delete[] values;
     }
     /**
      * merge two sorted lists into one (both in ascending order)
