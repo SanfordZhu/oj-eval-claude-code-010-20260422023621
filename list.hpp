@@ -386,22 +386,67 @@ public:
     void sort() {
         if (size() <= 1) return;
 
-        // Use selection sort - simple and doesn't require extra memory
-        for (node *cur = head->next; cur != tail; cur = cur->next) {
-            node *min_node = cur;
-            for (node *inner = cur->next; inner != tail; inner = inner->next) {
-                if (*(inner->data) < *(min_node->data)) {
-                    min_node = inner;
-                }
-            }
-            if (min_node != cur) {
-                // Swap data pointers
-                T *temp = cur->data;
-                cur->data = min_node->data;
-                min_node->data = temp;
-            }
+        // Use merge sort for O(n log n) performance
+        head->next = mergeSort(head->next);
+
+        // Fix the prev pointers
+        node *cur = head->next;
+        cur->prev = head;
+        while (cur->next != nullptr) {
+            cur->next->prev = cur;
+            cur = cur->next;
         }
+        tail->prev = cur;
+        cur->next = tail;
     }
+
+private:
+    // Merge sort implementation for linked list
+    node* mergeSort(node* start) {
+        if (start == nullptr || start->next == nullptr || start == tail) {
+            return start;
+        }
+
+        // Find the middle of the list
+        node* slow = start;
+        node* fast = start->next;
+
+        while (fast != nullptr && fast != tail && fast->next != nullptr && fast->next != tail) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+
+        // Split the list into two halves
+        node* mid = slow->next;
+        slow->next = nullptr;
+
+        // Recursively sort both halves
+        node* left = mergeSort(start);
+        node* right = mergeSort(mid);
+
+        // Merge the sorted halves
+        return merge(left, right);
+    }
+
+    // Merge two sorted linked lists
+    node* merge(node* left, node* right) {
+        if (left == nullptr) return right;
+        if (right == nullptr) return left;
+
+        node* result = nullptr;
+
+        if (*(left->data) < *(right->data)) {
+            result = left;
+            result->next = merge(left->next, right);
+        } else {
+            result = right;
+            result->next = merge(left, right->next);
+        }
+
+        return result;
+    }
+
+public:
     /**
      * merge two sorted lists into one (both in ascending order)
      * compare with operator< of T
